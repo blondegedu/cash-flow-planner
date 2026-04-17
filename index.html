@@ -112,6 +112,8 @@
       <span id="month-label"></span>
       <button onclick="changeMonth(1)">Next ›</button>
       <button id="undo-btn" onclick="undo()" disabled style="background:#6b7280;">↩ Undo</button>
+      <button onclick="exportData()" style="background:#059669;">⬇ Export</button>
+      <label style="background:#7c3aed;color:#fff;border-radius:6px;padding:0.35rem 0.75rem;cursor:pointer;font-size:0.85rem;">⬆ Import<input type="file" accept=".json" onchange="importData(this)" style="display:none"></label>
     </div>
   </div>
 
@@ -792,6 +794,26 @@ function changeMonth(dir) {
   renderLedger();
   renderSummary();
   renderSavings();
+}
+
+function exportData() {
+  const data = Object.fromEntries(Object.entries(localStorage).filter(([k]) => k.startsWith('cfp-')));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type:'application/json'}));
+  a.download = `cashflow-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (!confirm('This will overwrite all existing data. Continue?')) return;
+    Object.entries(JSON.parse(e.target.result)).forEach(([k,v]) => localStorage.setItem(k,v));
+    location.reload();
+  };
+  reader.readAsText(file);
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
